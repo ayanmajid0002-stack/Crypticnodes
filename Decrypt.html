@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>crypticNode | Decrypt Tool · NEO DARK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'JetBrains Mono', monospace;
+      background: #03050b;
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    .cyber-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(125deg, #03050b 0%, #0a0f1f 50%, #010108 100%);
+      z-index: -2;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.05) 0px, rgba(0, 255, 200, 0.05) 1px, transparent 1px, transparent 3px), repeating-linear-gradient(90deg, rgba(0, 255, 200, 0.05) 0px, rgba(0, 255, 200, 0.05) 1px, transparent 1px, transparent 3px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.02) 0px, rgba(0, 255, 200, 0.02) 2px, transparent 2px, transparent 6px);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ========== NAVBAR WITH VISIBLE BOTTOM RUNNING LINE ========== */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 6%;
+      background: rgba(2, 5, 18, 0.9);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.1), inset 0 1px 0 rgba(0, 255, 200, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid rgba(0, 255, 200, 0.3);
+    }
+
+    /* Navbar ke NICHE line - SUPER BRIGHT Left se Right */
+    .navbar::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: -100%;
+      width: 70%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ffff, #0ff, #2affd0, #00ffff, #0ff, transparent);
+      animation: borderRunLeftToRight 2s linear infinite;
+      filter: drop-shadow(0 0 5px #0ff);
+      z-index: 101;
+    }
+
+    /* Extra glowing line for navbar */
+    .navbar::before {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: -100%;
+      width: 70%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ffffff, #7effe0, #ffffff, transparent);
+      animation: borderRunLeftToRight 2s linear infinite;
+      filter: blur(2px);
+      z-index: 100;
+    }
+
+    @keyframes borderRunLeftToRight {
+      0% { left: -100%; }
+      100% { left: 150%; }
+    }
+
+    /* Hover effect - speed increase */
+    .navbar:hover::after {
+      animation-duration: 1.2s;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #b5ffff, #2affd0, #00a6ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -1px;
+      text-shadow: 0 0 4px #00ffcc80;
+      transition: all 0.2s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.02);
+      filter: drop-shadow(0 0 6px #0ff);
+    }
+
+    .logo span {
+      font-weight: 700;
+      background: linear-gradient(135deg, #7efff0, #00ddff);
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    .back-link {
+      color: #0ff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: 0.2s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 60px;
+      border: 1px solid rgba(0, 255, 200, 0.3);
+    }
+
+    .back-link:hover {
+      color: #fff;
+      text-shadow: 0 0 5px #0ff;
+      border-color: #0ff;
+      box-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
+      transform: translateX(-3px);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 5;
+    }
+
+    .tool-header {
+      padding: 2rem 0 1rem 0;
+      animation: smoothFadeUp 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+    }
+
+    @keyframes smoothFadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tool-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff, #7effe0, #2a9dff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      filter: drop-shadow(0 0 6px rgba(0,255,200,0.3));
+    }
+
+    .tool-header h1 i {
+      color: #0ff;
+      text-shadow: 0 0 3px #0ff;
+    }
+
+    .tool-header p {
+      color: #9bc0f0;
+      margin-top: 0.5rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #0ff, #0ff, transparent);
+      margin: 1.5rem 0;
+    }
+
+    .tool-card {
+      background: rgba(6, 10, 22, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 255, 210, 0.4);
+      border-radius: 28px;
+      padding: 2rem;
+      margin: 1rem 0 2rem 0;
+      box-shadow: 0 20px 35px -8px black;
+      transition: all 0.3s ease;
+      opacity: 0;
+      animation: fadeUpCard 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+
+    @keyframes fadeUpCard {
+      0% {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tool-card:hover {
+      border-color: #0ff;
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.15);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #eef2ff;
+      font-size: 0.9rem;
+    }
+
+    .form-group label i {
+      color: #0ff;
+      margin-right: 0.5rem;
+      text-shadow: 0 0 3px #0ff;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      background: #01030f;
+      border: 1px solid #2c799b;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      font-family: 'Inter', monospace;
+      resize: vertical;
+      outline: none;
+      color: #eaf6ff;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .form-group textarea:focus {
+      border-color: #0ff;
+      box-shadow: 0 0 10px #0ff;
+      transform: scale(1.01);
+    }
+
+    /* Password wrapper with eye icon */
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-wrapper input {
+      width: 100%;
+      padding: 0.85rem 2.8rem 0.85rem 1rem;
+      background: #01030f;
+      border: 1px solid #2c799b;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      font-family: 'Inter', monospace;
+      outline: none;
+      color: #eaf6ff;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .password-wrapper input:focus {
+      border-color: #0ff;
+      box-shadow: 0 0 10px #0ff;
+      transform: scale(1.01);
+    }
+
+    /* custom numeric validation style */
+    .password-wrapper input.invalid-key {
+      border-color: #ff3366;
+      box-shadow: 0 0 8px rgba(255, 51, 102, 0.5);
+      animation: shake 0.2s ease-in-out 0s 2;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #0ff;
+      font-size: 1.1rem;
+      background: transparent;
+      border: none;
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+
+    .toggle-password:hover {
+      color: #fff;
+      text-shadow: 0 0 6px #0ff;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .key-hint {
+      font-size: 0.75rem;
+      color: #7ca5dd;
+      margin-top: 0.35rem;
+    }
+
+    .key-hint i {
+      color: #0ff;
+      margin-right: 0.3rem;
+    }
+
+    .decrypt-btn {
+      background: linear-gradient(95deg, #0a1128, #020617);
+      color: white;
+      padding: 0.9rem 2rem;
+      border: 1px solid #0ff;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .decrypt-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.1);
+      transform: none;
+    }
+
+    .decrypt-btn:hover:not(:disabled) {
+      background: #142845;
+      box-shadow: 0 0 12px #0ff;
+      border-color: #b5ffff;
+      transform: translateY(-3px) scale(1.01);
+    }
+
+    .result-box {
+      background: rgba(2, 5, 18, 0.5);
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      border-radius: 20px;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .result-box:hover {
+      border-color: #0ff;
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.1);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #9bc0f0;
+    }
+
+    .result-label i {
+      color: #0ff;
+      margin-right: 0.5rem;
+    }
+
+    .copy-btn {
+      background: rgba(0, 255, 200, 0.1);
+      border: 1px solid rgba(0, 255, 200, 0.4);
+      border-radius: 40px;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #0ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .copy-btn:hover {
+      background: rgba(0, 255, 200, 0.2);
+      border-color: #0ff;
+      transform: scale(1.02);
+      box-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
+    }
+
+    .copy-btn.copied {
+      background: #0ff;
+      color: #01030f;
+      border-color: #fff;
+    }
+
+    .result-content {
+      background: #01030f;
+      border: 1px solid #2c799b;
+      border-radius: 16px;
+      padding: 1rem;
+      font-family: 'Inter', monospace;
+      font-size: 0.9rem;
+      word-break: break-all;
+      color: #eaf6ff;
+      min-height: 80px;
+      transition: all 0.2s ease;
+    }
+
+    /* ========== FOOTER WITH VISIBLE TOP RUNNING LINE ========== */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #4a7a9f;
+      border-top: 2px solid rgba(0, 255, 200, 0.3);
+      background: rgba(1, 3, 12, 0.8);
+      backdrop-filter: blur(12px);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 5;
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+
+    /* Footer ke UPPER line - SUPER BRIGHT Left se Right */
+    footer::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 70%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ffff, #0ff, #2affd0, #00ffff, #0ff, transparent);
+      animation: borderRunLeftToRightFooter 2s linear infinite;
+      filter: drop-shadow(0 0 5px #0ff);
+      z-index: 6;
+    }
+
+    /* Extra glowing line for footer */
+    footer::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 70%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ffffff, #7effe0, #ffffff, transparent);
+      animation: borderRunLeftToRightFooter 2s linear infinite;
+      filter: blur(2px);
+      z-index: 5;
+    }
+
+    @keyframes borderRunLeftToRightFooter {
+      0% { left: -100%; }
+      100% { left: 150%; }
+    }
+
+    /* Hover effect - speed increase */
+    footer:hover::before {
+      animation-duration: 1.2s;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(0, 255, 200, 0.9);
+      color: #01030f;
+      padding: 0.8rem 1.5rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      z-index: 1000;
+      animation: toastSlide 0.3s ease forwards;
+      box-shadow: 0 0 15px #0ff;
+    }
+
+    .toast.error-toast {
+      background: rgba(255, 68, 68, 0.95);
+      color: #fff;
+      box-shadow: 0 0 15px #ff3366;
+    }
+
+    @keyframes toastSlide {
+      0% {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .tool-header h1 {
+        font-size: 1.5rem;
+      }
+      
+      .container {
+        padding: 0 1rem;
+      }
+      
+      .tool-card {
+        padding: 1.25rem;
+      }
+      
+      .result-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+      
+      .copy-btn {
+        justify-content: center;
+      }
+      
+      .toast {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cyber-bg"></div>
+<div class="grid-overlay"></div>
+<div class="scanline"></div>
+
+<nav class="navbar">
+  <div class="logo">Cryptic<span>Node</span></div>
+  <a href="/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+</nav>
+
+<main class="container">
+  <div class="tool-header">
+    <h1><i class="fas fa-unlock-alt"></i>Decrypt Tool</h1>
+    <p>Decrypting the future ,one node at a time</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="tool-card">
+    <!-- Client-side decryption: No server POST, pure JavaScript -->
+    <div>
+      <div class="form-group">
+        <label><i class="fas fa-terminal"></i> TARGETED CIPHER TEXT</label>
+        <textarea rows="5" id="cipherTextArea" placeholder="Input encrypted base64 hash or string data stream..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-shield-alt"></i>Password (Numeric Key only)</label>
+        <div class="password-wrapper">
+          <input type="password" name="shiftkey" id="passwordField" maxlength="6" placeholder="Enter numeric password (digits only)" autocomplete="off">
+          <i class="fas fa-eye-slash toggle-password" id="togglePassword"></i>
+        </div>
+        <div class="key-hint"><i class="fas fa-info-circle"></i> Only digits allowed (0-9). Must match encryption key.</div>
+      </div>
+
+      <button id="decryptBtn" class="decrypt-btn">
+        <i class="fas fa-unlock-alt"></i> Decrypt Message
+      </button>
+    </div>
+
+    <div class="result-box">
+      <div class="result-header">
+        <div class="result-label">
+          <i class="fas fa-envelope-open-text"></i> PLAINTEXT
+        </div>
+        <button class="copy-btn" id="copyPlaintextBtn">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+      </div>
+      <div class="result-content" id="plaintextContent">
+        Waiting for secure handshake and key execution
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© 2026 crypticNode — Secure Decryption Tool | encrypted dimension</p>
+</footer>
+
+<script>
+  // DOM elements
+  const passwordInput = document.getElementById('passwordField');
+  const decryptBtn = document.getElementById('decryptBtn');
+  const cipherTextArea = document.getElementById('cipherTextArea');
+  const plaintextDiv = document.getElementById('plaintextContent');
+
+  // ----- NUMERIC VALIDATION (only digits) for password field while preserving type="password" -----
+  function validateAndFilterNumeric(event) {
+    setTimeout(() => {
+      let currentVal = passwordInput.value;
+      let filtered = currentVal.replace(/[^0-9]/g, '');
+      if (currentVal !== filtered) {
+        passwordInput.value = filtered;
+        passwordInput.classList.add('invalid-key');
+        showToast('Only numeric digits (0-9) allowed for password key!', true);
+        setTimeout(() => {
+          if (passwordInput) passwordInput.classList.remove('invalid-key');
+        }, 600);
+      } else {
+        passwordInput.classList.remove('invalid-key');
+      }
+      if (passwordInput.value.length > 6) {
+        passwordInput.value = passwordInput.value.slice(0, 6);
+      }
+    }, 0);
+  }
+  
+  function onKeyPressNumeric(e) {
+    const charCode = e.which ? e.which : e.keyCode;
+    const keyChar = String.fromCharCode(charCode);
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (charCode === 8 || charCode === 46 || charCode === 37 || charCode === 39 || charCode === 9) return;
+    if (!/[0-9]/.test(keyChar)) {
+      e.preventDefault();
+      showToast('Only numeric digits allowed!', true);
+      passwordInput.classList.add('invalid-key');
+      setTimeout(() => {
+        if (passwordInput) passwordInput.classList.remove('invalid-key');
+      }, 500);
+      return false;
+    }
+    const currentVal = passwordInput.value;
+    if (currentVal.length >= 6 && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      showToast('Maximum key length is 6 digits', true);
+      return false;
+    }
+    return true;
+  }
+  
+  function onPasteNumeric(e) {
+    e.preventDefault();
+    let pastedText = (e.clipboardData || window.clipboardData).getData('text');
+    let digitsOnly = pastedText.replace(/[^0-9]/g, '');
+    if (digitsOnly.length > 0) {
+      let newVal = (passwordInput.value + digitsOnly).slice(0, 6);
+      passwordInput.value = newVal;
+      const evt = new Event('input', { bubbles: true });
+      passwordInput.dispatchEvent(evt);
+    } else {
+      showToast('Pasted text contains no digits!', true);
+    }
+  }
+  
+  passwordInput.addEventListener('input', validateAndFilterNumeric);
+  passwordInput.addEventListener('keypress', onKeyPressNumeric);
+  passwordInput.addEventListener('paste', onPasteNumeric);
+  passwordInput.addEventListener('blur', function() {
+    let val = this.value;
+    let filtered = val.replace(/[^0-9]/g, '');
+    if (filtered !== val) this.value = filtered;
+    if (this.value.length > 6) this.value = this.value.slice(0,6);
+  });
+  
+  // ----- DECRYPTION LOGIC (mirror of encrypt: XOR + base64) -----
+  // Encryption method (from encrypt tool): plaintext -> XOR with numeric key digits -> binary string -> btoa
+  // Decryption: base64 -> binary string -> XOR with same key digits -> original text
+  function decryptWithNumericKey(base64Cipher, numericKeyStr) {
+    if (!base64Cipher || base64Cipher.trim() === "") {
+      throw new Error("No cipher text provided.");
+    }
+    if (!numericKeyStr || numericKeyStr.length === 0) {
+      throw new Error("Numeric decryption key is required.");
+    }
+    if (!/^\d+$/.test(numericKeyStr)) {
+      throw new Error("Key must contain only digits.");
+    }
+    
+    let binaryString;
+    try {
+      // Decode base64 to binary string
+      binaryString = atob(base64Cipher);
+    } catch (e) {
+      throw new Error("Invalid base64 ciphertext. Decoding failed.");
+    }
+    
+    const keyDigits = numericKeyStr.split('').map(ch => parseInt(ch, 10));
+    const cipherBytes = [];
+    for (let i = 0; i < binaryString.length; i++) {
+      cipherBytes.push(binaryString.charCodeAt(i));
+    }
+    
+    let decryptedChars = [];
+    for (let i = 0; i < cipherBytes.length; i++) {
+      const encryptedCode = cipherBytes[i];
+      const keyByte = keyDigits[i % keyDigits.length];
+      const originalCode = encryptedCode ^ keyByte;
+      decryptedChars.push(String.fromCharCode(originalCode));
+    }
+    
+    return decryptedChars.join('');
+  }
+  
+  // Toast helper with error styling
+  function showToast(message, isError = false) {
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    if (isError) {
+      toast.classList.add('error-toast');
+      toast.style.background = 'rgba(255, 68, 68, 0.95)';
+      toast.style.color = '#fff';
+      toast.style.boxShadow = '0 0 15px #ff3366';
+    } else {
+      toast.style.background = 'rgba(0, 255, 200, 0.9)';
+      toast.style.color = '#01030f';
+    }
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      if (toast) {
+        toast.style.animation = 'toastSlide 0.3s ease reverse forwards';
+        setTimeout(() => toast.remove(), 300);
+      }
+    }, 2800);
+  }
+  
+  // Decryption handler
+  async function performDecryption() {
+    const cipherText = cipherTextArea.value;
+    const rawKey = passwordInput.value;
+    
+    if (!cipherText || cipherText.trim() === "") {
+      showToast("⚠️ Please enter cipher text to decrypt!", true);
+      plaintextDiv.innerText = "Error: No cipher text provided.";
+      return;
+    }
+    
+    if (!rawKey || rawKey.length === 0) {
+      showToast("❌ Please enter a numeric password key (digits only).", true);
+      plaintextDiv.innerText = "Error: Password key is required.";
+      return;
+    }
+    
+    if (!/^\d+$/.test(rawKey)) {
+      showToast("❌ Key must contain only digits (0-9).", true);
+      plaintextDiv.innerText = "Error: Invalid key format (only digits).";
+      return;
+    }
+    
+    try {
+      decryptBtn.disabled = true;
+      decryptBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Decrypting...';
+      await new Promise(r => setTimeout(r, 50));
+      
+      const decryptedText = decryptWithNumericKey(cipherText, rawKey);
+      plaintextDiv.innerText = decryptedText;
+      showToast("✓ Decryption successful! Plaintext revealed.");
+    } catch (err) {
+      console.error(err);
+      let errorMsg = err.message || "Decryption failed";
+      plaintextDiv.innerText = `Decryption failed: ${errorMsg}`;
+      showToast(`❌ ${errorMsg}`, true);
+    } finally {
+      decryptBtn.disabled = false;
+      decryptBtn.innerHTML = '<i class="fas fa-unlock-alt"></i> Decrypt Message';
+    }
+  }
+  
+  decryptBtn.addEventListener('click', performDecryption);
+  
+  // ========== Copy plaintext logic ==========
+  const copyPlaintextBtn = document.getElementById('copyPlaintextBtn');
+  copyPlaintextBtn.addEventListener('click', async () => {
+    const textToCopy = plaintextDiv.innerText;
+    if (!textToCopy || 
+        textToCopy === "Waiting for secure handshake and key execution" ||
+        textToCopy.startsWith("Error:") ||
+        textToCopy.startsWith("Decryption failed")) {
+      showToast("⚠️ No valid plaintext to copy. Decrypt a message first.", true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      copyPlaintextBtn.classList.add('copied');
+      copyPlaintextBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      showToast("📋 Plaintext copied to clipboard!");
+      setTimeout(() => {
+        copyPlaintextBtn.classList.remove('copied');
+        copyPlaintextBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+      }, 2000);
+    } catch (err) {
+      showToast("❌ Failed to copy.", true);
+    }
+  });
+  
+  // Password visibility toggle (preserves functionality)
+  const togglePassword = document.getElementById('togglePassword');
+  togglePassword.addEventListener('click', function() {
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      togglePassword.classList.remove('fa-eye-slash');
+      togglePassword.classList.add('fa-eye');
+    } else {
+      passwordField.type = 'password';
+      togglePassword.classList.remove('fa-eye');
+      togglePassword.classList.add('fa-eye-slash');
+    }
+    togglePassword.style.transform = 'translateY(-50%) scale(1.2)';
+    setTimeout(() => {
+      if (togglePassword) togglePassword.style.transform = '';
+    }, 150);
+  });
+  
+  // Optional: Small demo note - interoperability with encrypt tool
+  console.log("crypticNode Decrypt Ready | Numeric-only password, type=password preserved");
+</script>
+
+</body>
+</html>

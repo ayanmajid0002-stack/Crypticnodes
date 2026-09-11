@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>crypticNode | Dashboard · NEO DARK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'JetBrains Mono', monospace;
+      background: #03050b;
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    .cyber-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(125deg, #03050b 0%, #0a0f1f 50%, #010108 100%);
+      z-index: -2;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.05) 0px, rgba(0, 255, 200, 0.05) 1px, transparent 1px, transparent 3px), repeating-linear-gradient(90deg, rgba(0, 255, 200, 0.05) 0px, rgba(0, 255, 200, 0.05) 1px, transparent 1px, transparent 3px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.02) 0px, rgba(0, 255, 200, 0.02) 2px, transparent 2px, transparent 6px);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ========== NAVBAR WITH VISIBLE BOTTOM RUNNING LINE ========== */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 6%;
+      background: rgba(2, 5, 18, 0.9);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.1), inset 0 1px 0 rgba(0, 255, 200, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid rgba(0, 255, 200, 0.3);
+    }
+
+    /* Navbar ke NICHE line - SUPER BRIGHT Left se Right */
+    .navbar::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: -100%;
+      width: 70%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ffff, #0ff, #2affd0, #00ffff, #0ff, transparent);
+      animation: borderRunLeftToRight 2s linear infinite;
+      filter: drop-shadow(0 0 5px #0ff);
+      z-index: 101;
+    }
+
+    /* Extra glowing line for navbar */
+    .navbar::before {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: -100%;
+      width: 70%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ffffff, #7effe0, #ffffff, transparent);
+      animation: borderRunLeftToRight 2s linear infinite;
+      filter: blur(2px);
+      z-index: 100;
+    }
+
+    @keyframes borderRunLeftToRight {
+      0% { left: -100%; }
+      100% { left: 150%; }
+    }
+
+    /* Hover effect - speed increase */
+    .navbar:hover::after {
+      animation-duration: 1.2s;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #b5ffff, #2affd0, #00a6ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -1px;
+      text-shadow: 0 0 4px #00ffcc80;
+      transition: all 0.2s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.02);
+      filter: drop-shadow(0 0 6px #0ff);
+    }
+
+    .logo span {
+      font-weight: 700;
+      background: linear-gradient(135deg, #7efff0, #00ddff);
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: #c2dcff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 0%;
+      height: 1.5px;
+      background: linear-gradient(90deg, #0ff, #7effe0);
+      transition: width 0.25s ease-out;
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-links a:hover {
+      color: #0ff;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    .signout-btn {
+      background: linear-gradient(95deg, #0a1128, #020617);
+      color: white !important;
+      padding: 0.5rem 1.25rem;
+      border-radius: 40px;
+      border: 1px solid #0ff8;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .signout-btn:hover {
+      background: #142845;
+      box-shadow: 0 0 10px #0ff;
+      border-color: #0ff;
+      color: white !important;
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 5;
+    }
+
+    .welcome-section {
+      padding: 2rem 0 1rem 0;
+      animation: smoothFadeUp 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+    }
+
+    @keyframes smoothFadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome-section h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff, #7effe0, #2a9dff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 6px rgba(0,255,200,0.3));
+    }
+
+    .welcome-section p {
+      color: #9bc0f0;
+      font-size: 0.95rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #0ff, #0ff, transparent);
+      margin: 1.5rem 0;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 1rem 0 4rem 0;
+    }
+
+    .tool-card {
+      background: rgba(6, 10, 22, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 255, 210, 0.4);
+      border-radius: 24px;
+      padding: 1.8rem;
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+      text-decoration: none;
+      display: block;
+      opacity: 0;
+      animation: fadeUpCards 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+
+    .tool-card:nth-child(1) { animation-delay: 0.1s; }
+    .tool-card:nth-child(2) { animation-delay: 0.2s; }
+    .tool-card:nth-child(3) { animation-delay: 0.3s; }
+    .tool-card:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes fadeUpCards {
+      0% {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tool-card:hover {
+      border-color: #0ff;
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 0 15px rgba(0, 255, 200, 0.2);
+    }
+
+    .tool-icon {
+      font-size: 2.2rem;
+      color: #0ff;
+      text-shadow: 0 0 4px #0ff;
+      margin-bottom: 1rem;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    .tool-card:hover .tool-icon {
+      transform: scale(1.1);
+    }
+
+    .tool-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #eef2ff;
+    }
+
+    .tool-card p {
+      color: #b2d0ff;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .tool-arrow {
+      margin-top: 1rem;
+      display: inline-block;
+      color: #0ff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .tool-card:hover .tool-arrow {
+      transform: translateX(5px);
+      text-shadow: 0 0 3px #0ff;
+    }
+
+    /* ========== FOOTER WITH VISIBLE TOP RUNNING LINE ========== */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #4a7a9f;
+      border-top: 2px solid rgba(0, 255, 200, 0.3);
+      background: rgba(1, 3, 12, 0.8);
+      backdrop-filter: blur(12px);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 5;
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+
+    /* Footer ke UPPER line - SUPER BRIGHT Left se Right */
+    footer::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 70%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ffff, #0ff, #2affd0, #00ffff, #0ff, transparent);
+      animation: borderRunLeftToRightFooter 2s linear infinite;
+      filter: drop-shadow(0 0 5px #0ff);
+      z-index: 6;
+    }
+
+    /* Extra glowing line for footer */
+    footer::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 70%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ffffff, #7effe0, #ffffff, transparent);
+      animation: borderRunLeftToRightFooter 2s linear infinite;
+      filter: blur(2px);
+      z-index: 5;
+    }
+
+    @keyframes borderRunLeftToRightFooter {
+      0% { left: -100%; }
+      100% { left: 150%; }
+    }
+
+    /* Hover effect - speed increase */
+    footer:hover::before {
+      animation-duration: 1.2s;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+      }
+      
+      .welcome-section h1 {
+        font-size: 1.5rem;
+      }
+      
+      .container {
+        padding: 0 1rem;
+      }
+      
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cyber-bg"></div>
+<div class="grid-overlay"></div>
+<div class="scanline"></div>
+
+<nav class="navbar">
+  <div class="logo">Cryptic<span>Node</span></div>
+  <div class="nav-links">
+    <a href="/" class="signout-btn">Sign Out</a>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="welcome-section">
+    <h1>Ready to Encrypt, {{name}}</h1>
+    <p>Secure your communication with our advanced tools</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="dashboard-grid">
+    <!-- Encrypt Card -->
+    <a href="/Encrypt" class="tool-card">
+      <div class="tool-icon"><i class="fas fa-lock"></i></div>
+      <h3>Encrypt</h3>
+      <p>Hide your message in a secret cipher. Pure logic, no extra noise</p>
+      <span class="tool-arrow">Launch →</span>
+    </a>
+
+    <!-- Decrypt Card -->
+    <a href="/Decrypt" class="tool-card">
+      <div class="tool-icon"><i class="fas fa-unlock-alt"></i></div>
+      <h3>Decrypt</h3>
+      <p>Decrypt your encrypted messages back to original plain text with the correct key.</p>
+      <span class="tool-arrow">Launch →</span>
+    </a>
+
+    <!-- Text to Emoji Card -->
+    <a href="/Text" class="tool-card">
+      <div class="tool-icon"><i class="far fa-smile-wink"></i></div>
+      <h3>Text to Emoji</h3>
+      <p>Convert your text into fun emoji sequences. Express yourself creatively.</p>
+      <span class="tool-arrow">Launch →</span>
+    </a>
+
+    <!-- Emoji to Text Card -->
+    <a href="/Emoji" class="tool-card">
+      <div class="tool-icon"><i class="fas fa-font"></i></div>
+      <h3>Emoji to Text</h3>
+      <p>Convert emoji sequences back into readable text. Decode the fun.</p>
+      <span class="tool-arrow">Launch →</span>
+    </a>
+  </div>
+</main>
+
+<footer>
+  <p>© 2026 crypticNode — Secure - Fully Private - Key Security - No Save</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>crypticNode | Emoji to Text · NEO DARK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'JetBrains Mono', monospace;
+      background: #03050b;
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    .cyber-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(125deg, #03050b 0%, #0a0f1f 50%, #010108 100%);
+      z-index: -2;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.05) 0px, rgba(0, 255, 200, 0.05) 1px, transparent 1px, transparent 3px), repeating-linear-gradient(90deg, rgba(0, 255, 200, 0.05) 0px, rgba(0, 255, 200, 0.05) 1px, transparent 1px, transparent 3px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.02) 0px, rgba(0, 255, 200, 0.02) 2px, transparent 2px, transparent 6px);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ========== NAVBAR WITH VISIBLE BOTTOM RUNNING LINE ========== */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 6%;
+      background: rgba(2, 5, 18, 0.9);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.1), inset 0 1px 0 rgba(0, 255, 200, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid rgba(0, 255, 200, 0.3);
+    }
+
+    /* Navbar ke NICHE line - SUPER BRIGHT Left se Right */
+    .navbar::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: -100%;
+      width: 70%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ffff, #0ff, #2affd0, #00ffff, #0ff, transparent);
+      animation: borderRunLeftToRight 2s linear infinite;
+      filter: drop-shadow(0 0 5px #0ff);
+      z-index: 101;
+    }
+
+    /* Extra glowing line for navbar */
+    .navbar::before {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: -100%;
+      width: 70%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ffffff, #7effe0, #ffffff, transparent);
+      animation: borderRunLeftToRight 2s linear infinite;
+      filter: blur(2px);
+      z-index: 100;
+    }
+
+    @keyframes borderRunLeftToRight {
+      0% { left: -100%; }
+      100% { left: 150%; }
+    }
+
+    /* Hover effect - speed increase */
+    .navbar:hover::after {
+      animation-duration: 1.2s;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #b5ffff, #2affd0, #00a6ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -1px;
+      text-shadow: 0 0 4px #00ffcc80;
+      transition: all 0.2s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.02);
+      filter: drop-shadow(0 0 6px #0ff);
+    }
+
+    .logo span {
+      font-weight: 700;
+      background: linear-gradient(135deg, #7efff0, #00ddff);
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    .back-link {
+      color: #0ff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: 0.2s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 60px;
+      border: 1px solid rgba(0, 255, 200, 0.3);
+    }
+
+    .back-link:hover {
+      color: #fff;
+      text-shadow: 0 0 5px #0ff;
+      border-color: #0ff;
+      box-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
+      transform: translateX(-3px);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 5;
+    }
+
+    .tool-header {
+      padding: 2rem 0 1rem 0;
+      animation: smoothFadeUp 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+    }
+
+    @keyframes smoothFadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tool-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff, #7effe0, #2a9dff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      filter: drop-shadow(0 0 6px rgba(0,255,200,0.3));
+    }
+
+    .tool-header h1 i {
+      color: #0ff;
+      text-shadow: 0 0 3px #0ff;
+    }
+
+    .tool-header p {
+      color: #9bc0f0;
+      margin-top: 0.5rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #0ff, #0ff, transparent);
+      margin: 1.5rem 0;
+    }
+
+    .tool-card {
+      background: rgba(6, 10, 22, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 255, 210, 0.4);
+      border-radius: 28px;
+      padding: 2rem;
+      margin: 1rem 0 2rem 0;
+      box-shadow: 0 20px 35px -8px black;
+      transition: all 0.3s ease;
+      opacity: 0;
+      animation: fadeUpCard 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+
+    @keyframes fadeUpCard {
+      0% {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tool-card:hover {
+      border-color: #0ff;
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.15);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #eef2ff;
+      font-size: 0.9rem;
+    }
+
+    .form-group label i {
+      color: #0ff;
+      margin-right: 0.5rem;
+      text-shadow: 0 0 3px #0ff;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      background: #01030f;
+      border: 1px solid #2c799b;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-family: 'Inter', monospace;
+      resize: vertical;
+      outline: none;
+      color: #eaf6ff;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .form-group textarea:focus {
+      border-color: #0ff;
+      box-shadow: 0 0 10px #0ff;
+      transform: scale(1.01);
+    }
+
+    .convert-btn {
+      background: linear-gradient(95deg, #0a1128, #020617);
+      color: white;
+      padding: 0.9rem 2rem;
+      border: 1px solid #0ff;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .convert-btn:hover {
+      background: #142845;
+      box-shadow: 0 0 12px #0ff;
+      border-color: #b5ffff;
+      transform: translateY(-3px) scale(1.01);
+    }
+
+    .result-box {
+      background: rgba(2, 5, 18, 0.5);
+      border: 1px solid rgba(0, 255, 200, 0.3);
+      border-radius: 20px;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .result-box:hover {
+      border-color: #0ff;
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.1);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #9bc0f0;
+    }
+
+    .result-label i {
+      color: #0ff;
+      margin-right: 0.5rem;
+    }
+
+    .copy-btn {
+      background: rgba(0, 255, 200, 0.1);
+      border: 1px solid rgba(0, 255, 200, 0.4);
+      border-radius: 40px;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #0ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .copy-btn:hover {
+      background: rgba(0, 255, 200, 0.2);
+      border-color: #0ff;
+      transform: scale(1.02);
+      box-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
+    }
+
+    .copy-btn.copied {
+      background: #0ff;
+      color: #01030f;
+      border-color: #fff;
+    }
+
+    .result-content {
+      background: #01030f;
+      border: 1px solid #2c799b;
+      border-radius: 16px;
+      padding: 1rem;
+      font-family: 'Inter', monospace;
+      font-size: 1rem;
+      word-break: break-all;
+      color: #eaf6ff;
+      min-height: 80px;
+      transition: all 0.2s ease;
+    }
+
+    /* ========== FOOTER WITH VISIBLE TOP RUNNING LINE ========== */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #4a7a9f;
+      border-top: 2px solid rgba(0, 255, 200, 0.3);
+      background: rgba(1, 3, 12, 0.8);
+      backdrop-filter: blur(12px);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 5;
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+
+    /* Footer ke UPPER line - SUPER BRIGHT Left se Right */
+    footer::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 70%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ffff, #0ff, #2affd0, #00ffff, #0ff, transparent);
+      animation: borderRunLeftToRightFooter 2s linear infinite;
+      filter: drop-shadow(0 0 5px #0ff);
+      z-index: 6;
+    }
+
+    /* Extra glowing line for footer */
+    footer::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 70%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ffffff, #7effe0, #ffffff, transparent);
+      animation: borderRunLeftToRightFooter 2s linear infinite;
+      filter: blur(2px);
+      z-index: 5;
+    }
+
+    @keyframes borderRunLeftToRightFooter {
+      0% { left: -100%; }
+      100% { left: 150%; }
+    }
+
+    /* Hover effect - speed increase */
+    footer:hover::before {
+      animation-duration: 1.2s;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(0, 255, 200, 0.9);
+      color: #01030f;
+      padding: 0.8rem 1.5rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      z-index: 1000;
+      animation: toastSlide 0.3s ease forwards;
+      box-shadow: 0 0 15px #0ff;
+    }
+
+    @keyframes toastSlide {
+      0% {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      .tool-header h1 {
+        font-size: 1.5rem;
+      }
+      .container {
+        padding: 0 1rem;
+      }
+      .tool-card {
+        padding: 1.25rem;
+      }
+      .result-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+      .copy-btn {
+        justify-content: center;
+      }
+      .toast {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cyber-bg"></div>
+<div class="grid-overlay"></div>
+<div class="scanline"></div>
+
+<nav class="navbar">
+  <div class="logo">Cryptic<span>Node</span></div>
+  <a href="/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+</nav>
+
+<main class="container">
+  <div class="tool-header">
+    <h1><i class="fas fa-font"></i> Emoji to Text</h1>
+    <p>Convert emoji sequences back into readable text</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="tool-card">
+    <form method="POST" action="/Emoji">
+      <div class="form-group">
+        <label><i class="fas fa-laugh-squint"></i> Emoji Text</label>
+        <textarea name="emoji_text" rows="4" placeholder="Paste your emojis here...">{{ emoji_input if emoji_input else '' }}</textarea>
+      </div>
+
+      <button type="submit" class="convert-btn">
+        <i class="fas fa-exchange-alt"></i> Convert to Text
+      </button>
+    </form>
+
+    <div class="result-box">
+      <div class="result-header">
+        <div class="result-label">
+          <i class="fas fa-pencil-alt"></i> Text Output
+        </div>
+        <button class="copy-btn" id="copyTextBtn">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+      </div>
+      <div class="result-content" id="textContent">
+        {{ text_output if text_output else "Your converted text will appear here" }}
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© 2026 crypticNode — Emoji Decoder</p>
+</footer>
+
+<script>
+  // Copy Text Functionality
+  const copyBtn = document.getElementById('copyTextBtn');
+  const textContent = document.getElementById('textContent');
+  
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      const textToCopy = textContent.innerText;
+      
+      if (textToCopy && textToCopy !== "Your converted text will appear here") {
+        // Copy to clipboard
+        navigator.clipboard.writeText(textToCopy).then(function() {
+          // Show success feedback
+          copyBtn.classList.add('copied');
+          copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          
+          // Show toast notification
+          showToast('✓ Text copied to clipboard! 📝');
+          
+          // Reset button after 2 seconds
+          setTimeout(function() {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+          }, 2000);
+        }).catch(function(err) {
+          console.error('Failed to copy: ', err);
+          showToast('❌ Failed to copy');
+        });
+      } else {
+        showToast('⚠️ Nothing to copy yet! Convert some emojis first.');
+      }
+    });
+  }
+  
+  // Toast notification function
+  function showToast(message) {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+      existingToast.remove();
+    }
+    
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    
+    // Remove toast after 3 seconds
+    setTimeout(function() {
+      if (toast) {
+        toast.style.animation = 'toastSlide 0.3s ease reverse forwards';
+        setTimeout(function() {
+          if (toast && toast.remove) toast.remove();
+        }, 300);
+      }
+    }, 3000);
+  }
+</script>
+
+</body>
+</html>
